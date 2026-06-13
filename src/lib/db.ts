@@ -11,6 +11,7 @@ export interface Transaction {
   description: string;
   meeting_id?: string;
   lodgment_id?: string;
+  receipt_image?: string; // Base64 compressed image URL
   created_at?: string;
 }
 
@@ -37,6 +38,7 @@ export interface Lodgment {
   treasurer_name: string;
   notes?: string;
   status: 'Pending' | 'Lodged' | 'Reconciled';
+  receipt_image?: string; // Base64 compressed image URL
   created_at?: string;
 }
 
@@ -156,6 +158,7 @@ export const saveTransaction = async (transaction: Partial<Transaction> & { id?:
     description: transaction.description || '',
     meeting_id: transaction.meeting_id || '',
     lodgment_id: transaction.lodgment_id || '',
+    receipt_image: transaction.receipt_image || '',
     created_at: transaction.created_at || new Date().toISOString()
   };
 
@@ -286,6 +289,7 @@ export const saveLodgment = async (lodgment: Partial<Lodgment> & { id?: string }
     treasurer_name: lodgment.treasurer_name || '',
     notes: lodgment.notes || '',
     status: lodgment.status || 'Lodged',
+    receipt_image: lodgment.receipt_image || '',
     created_at: lodgment.created_at || new Date().toISOString()
   };
 

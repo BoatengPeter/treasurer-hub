@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   LayoutDashboard,
   FileSpreadsheet,
@@ -24,7 +24,9 @@ import {
   Calendar,
   DollarSign,
   FileCheck,
-  TrendingUp
+  TrendingUp,
+  ImageIcon,
+  Eye
 } from 'lucide-react';
 
 import * as db from '@/lib/db';
@@ -71,6 +73,7 @@ const sampleData = {
       description: 'Sunday Youth Service Offering collection',
       meeting_id: 'meet-1',
       lodgment_id: 'lodge-1',
+      receipt_image: '',
       created_at: new Date('2026-06-07T12:00:00Z').toISOString()
     },
     {
@@ -84,6 +87,7 @@ const sampleData = {
       description: 'Monthly member dues collected',
       meeting_id: 'meet-1',
       lodgment_id: 'lodge-1',
+      receipt_image: '',
       created_at: new Date('2026-06-07T12:05:00Z').toISOString()
     },
     {
@@ -97,6 +101,7 @@ const sampleData = {
       description: 'Transport reimbursement for visiting guest speaker',
       meeting_id: '',
       lodgment_id: '',
+      receipt_image: '',
       created_at: new Date('2026-06-02T16:30:00Z').toISOString()
     },
     {
@@ -110,6 +115,7 @@ const sampleData = {
       description: 'Weekly service offering',
       meeting_id: 'meet-2',
       lodgment_id: 'lodge-2',
+      receipt_image: '',
       created_at: new Date('2026-05-31T12:00:00Z').toISOString()
     },
     {
@@ -123,6 +129,7 @@ const sampleData = {
       description: 'Monthly dues collection',
       meeting_id: 'meet-2',
       lodgment_id: 'lodge-2',
+      receipt_image: '',
       created_at: new Date('2026-05-31T12:10:00Z').toISOString()
     },
     {
@@ -136,6 +143,7 @@ const sampleData = {
       description: 'Receipt books and registers for treasury record keeping',
       meeting_id: '',
       lodgment_id: '',
+      receipt_image: '',
       created_at: new Date('2026-05-15T10:00:00Z').toISOString()
     }
   ] as Transaction[],
@@ -218,6 +226,7 @@ export default function Home() {
   // Modal & Form States
   const [isTxModalOpen, setIsTxModalOpen] = useState(false);
   const [editingTx, setEditingTx] = useState<Transaction | null>(null);
+  const [txReceiptImage, setTxReceiptImage] = useState('');
   
   const [isMeetModalOpen, setIsMeetModalOpen] = useState(false);
   const [editingMeeting, setEditingMeeting] = useState<Meeting | null>(null);
@@ -225,9 +234,13 @@ export default function Home() {
   
   const [isLodgeModalOpen, setIsLodgeModalOpen] = useState(false);
   const [editingLodgment, setEditingLodgment] = useState<Lodgment | null>(null);
+  const [lodgReceiptImage, setLodgReceiptImage] = useState('');
   
   const [isStmtModalOpen, setIsStmtModalOpen] = useState(false);
   const [editingStatement, setEditingStatement] = useState<ChurchStatement | null>(null);
+
+  // Receipt Preview Lightbox State
+  const [previewImage, setPreviewImage] = useState('');
 
   // Filter States
   const [txSearch, setTxSearch] = useState('');
@@ -242,6 +255,43 @@ export default function Home() {
   const [reportType, setReportType] = useState('both');
   const [reportQuarter, setReportQuarter] = useState<'Q1' | 'Q2' | 'Q3' | 'Q4'>('Q2');
   const [reportYear, setReportYear] = useState('2026');
+
+  // Image Compress helper
+  const compressImage = (file: File): Promise<string> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          const maxSize = 800; // max size
+
+          if (width > height) {
+            if (width > maxSize) {
+              height *= maxSize / width;
+              width = maxSize;
+            }
+          } else {
+            if (height > maxSize) {
+              width *= maxSize / height;
+              height = maxSize;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, width, height);
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.75); // compress quality
+          resolve(dataUrl);
+        };
+        img.src = event.target?.result as string;
+      };
+      reader.readAsDataURL(file);
+    });
+  };
 
   // Theme Syncing
   useEffect(() => {
@@ -348,6 +398,7 @@ export default function Home() {
       description: (formData.get('description') as string) || '',
       meeting_id: (formData.get('meeting_id') as string) || '',
       lodgment_id: (formData.get('lodgment_id') as string) || '',
+      receipt_image: txReceiptImage,
       created_at: editingTx?.created_at || undefined
     };
 
@@ -356,10 +407,11 @@ export default function Home() {
       setTransactions(await db.getTransactions());
       setIsTxModalOpen(false);
       setEditingTx(null);
+      setTxReceiptImage('');
     }
   };
 
-  // Handle meeting save/edit (and automatically generate ledger entries!)
+  // Handle meeting save/edit
   const handleSaveMeeting = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
@@ -448,6 +500,7 @@ export default function Home() {
       treasurer_name: formData.get('treasurer_name') as string,
       notes: (formData.get('notes') as string) || '',
       status: (formData.get('status') as 'Pending' | 'Lodged' | 'Reconciled') || 'Lodged',
+      receipt_image: lodgReceiptImage,
       created_at: editingLodgment?.created_at || undefined
     };
 
@@ -456,6 +509,7 @@ export default function Home() {
       setLodgments(await db.getLodgments());
       setIsLodgeModalOpen(false);
       setEditingLodgment(null);
+      setLodgReceiptImage('');
     }
   };
 
@@ -492,7 +546,7 @@ export default function Home() {
   };
 
   const handleDeleteMeeting = async (id: string) => {
-    if (confirm('Are you sure you want to delete this meeting? (Linked transactions will not be deleted)')) {
+    if (confirm('Are you sure you want to delete this meeting? (Note: Linked transactions will not be deleted)')) {
       await db.deleteMeeting(id);
       setMeetings(await db.getMeetings());
     }
@@ -817,6 +871,7 @@ export default function Home() {
                     <Button 
                       onClick={() => {
                         setEditingTx(null);
+                        setTxReceiptImage('');
                         setIsTxModalOpen(true);
                       }}
                       className="flex items-center gap-1.5"
@@ -1063,6 +1118,7 @@ export default function Home() {
                   <Button 
                     onClick={() => {
                       setEditingTx(null);
+                      setTxReceiptImage('');
                       setIsTxModalOpen(true);
                     }}
                     className="flex items-center gap-1.5"
@@ -1131,6 +1187,7 @@ export default function Home() {
                           <TableHead>Amount</TableHead>
                           <TableHead>Method</TableHead>
                           <TableHead>Vault Lodged</TableHead>
+                          <TableHead>Receipt</TableHead>
                           <TableHead className="no-print text-right">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
@@ -1165,6 +1222,20 @@ export default function Home() {
                                 <span className="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 text-[10px] font-medium">Pending</span>
                               )}
                             </TableCell>
+                            <TableCell>
+                              {t.receipt_image ? (
+                                <button
+                                  type="button"
+                                  onClick={() => setPreviewImage(t.receipt_image || '')}
+                                  className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 hover:underline text-xs cursor-pointer font-semibold"
+                                >
+                                  <ImageIcon className="h-3.5 w-3.5" />
+                                  <span>View</span>
+                                </button>
+                              ) : (
+                                <span className="text-xs text-muted-foreground">-</span>
+                              )}
+                            </TableCell>
                             <TableCell className="no-print text-right">
                               <div className="flex justify-end gap-1.5">
                                 <Button 
@@ -1172,6 +1243,7 @@ export default function Home() {
                                   size="sm" 
                                   onClick={() => {
                                     setEditingTx(t);
+                                    setTxReceiptImage(t.receipt_image || '');
                                     setIsTxModalOpen(true);
                                   }}
                                   className="h-7 w-7 p-0"
@@ -1192,7 +1264,7 @@ export default function Home() {
                         ))}
                         {filteredTransactions.length === 0 && (
                           <TableRow>
-                            <TableCell colSpan={9} className="text-center py-10 text-muted-foreground text-sm">
+                            <TableCell colSpan={10} className="text-center py-10 text-muted-foreground text-sm">
                               No transactions match your search filter.
                             </TableCell>
                           </TableRow>
@@ -1343,6 +1415,7 @@ export default function Home() {
                   <Button 
                     onClick={() => {
                       setEditingLodgment(null);
+                      setLodgReceiptImage('');
                       setIsLodgeModalOpen(true);
                     }}
                     className="flex items-center gap-1.5"
@@ -1362,6 +1435,7 @@ export default function Home() {
                           <TableHead>Receiving Church Treasurer</TableHead>
                           <TableHead>Notes</TableHead>
                           <TableHead>Status</TableHead>
+                          <TableHead>Receipt Image</TableHead>
                           <TableHead className="no-print text-right">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
@@ -1382,6 +1456,20 @@ export default function Home() {
                                 {l.status}
                               </span>
                             </TableCell>
+                            <TableCell>
+                              {l.receipt_image ? (
+                                <button
+                                  type="button"
+                                  onClick={() => setPreviewImage(l.receipt_image || '')}
+                                  className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 hover:underline text-xs cursor-pointer font-semibold"
+                                >
+                                  <ImageIcon className="h-3.5 w-3.5" />
+                                  <span>View</span>
+                                </button>
+                              ) : (
+                                <span className="text-xs text-muted-foreground">-</span>
+                              )}
+                            </TableCell>
                             <TableCell className="no-print text-right">
                               <div className="flex justify-end gap-1.5">
                                 <Button 
@@ -1389,6 +1477,7 @@ export default function Home() {
                                   size="sm" 
                                   onClick={() => {
                                     setEditingLodgment(l);
+                                    setLodgReceiptImage(l.receipt_image || '');
                                     setIsLodgeModalOpen(true);
                                   }}
                                   className="h-7 w-7 p-0"
@@ -1409,7 +1498,7 @@ export default function Home() {
                         ))}
                         {lodgments.length === 0 && (
                           <TableRow>
-                            <TableCell colSpan={7} className="text-center py-10 text-muted-foreground text-sm">
+                            <TableCell colSpan={8} className="text-center py-10 text-muted-foreground text-sm">
                               No lodgment deposits recorded yet.
                             </TableCell>
                           </TableRow>
@@ -1889,7 +1978,7 @@ export default function Home() {
 
       {/* MODAL: TRANSACTION LOGGING */}
       <Dialog open={isTxModalOpen} onOpenChange={setIsTxModalOpen}>
-        <DialogContent className="max-w-[550px]">
+        <DialogContent className="max-w-[550px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingTx ? 'Modify Transaction Record' : 'Record Ledger Transaction'}</DialogTitle>
           </DialogHeader>
@@ -1985,6 +2074,40 @@ export default function Home() {
                 placeholder="Log context notes for this transaction..."
                 defaultValue={editingTx?.description || ''}
               />
+            </div>
+
+            {/* Receipt upload input */}
+            <div className="flex flex-col gap-1.5 border-t border-border pt-4 mt-2">
+              <label className="text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5">
+                <ImageIcon className="h-4 w-4 text-emerald-600" />
+                Upload Receipt Image (optional)
+              </label>
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    const compressed = await compressImage(file);
+                    setTxReceiptImage(compressed);
+                  }
+                }}
+                className="text-xs cursor-pointer"
+              />
+              {txReceiptImage && (
+                <div className="mt-2 relative inline-block self-start">
+                  <img src={txReceiptImage} alt="Receipt Preview" className="h-20 w-20 object-cover rounded border border-border" />
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="sm"
+                    className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full p-0 text-[10px] flex items-center justify-center"
+                    onClick={() => setTxReceiptImage('')}
+                  >
+                    ✕
+                  </Button>
+                </div>
+              )}
             </div>
 
             <input type="hidden" name="meeting_id" defaultValue={editingTx?.meeting_id || ''} />
@@ -2101,7 +2224,7 @@ export default function Home() {
 
       {/* MODAL: RECORD LODGMENT */}
       <Dialog open={isLodgeModalOpen} onOpenChange={setIsLodgeModalOpen}>
-        <DialogContent className="max-w-[550px]">
+        <DialogContent className="max-w-[550px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingLodgment ? 'Modify Deposit Record' : 'Record Deposit Lodgment'}</DialogTitle>
           </DialogHeader>
@@ -2173,6 +2296,40 @@ export default function Home() {
                 placeholder="Any special remarks..."
                 defaultValue={editingLodgment?.notes || ''}
               />
+            </div>
+
+            {/* Receipt upload input */}
+            <div className="flex flex-col gap-1.5 border-t border-border pt-4 mt-2">
+              <label className="text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5">
+                <ImageIcon className="h-4 w-4 text-emerald-600" />
+                Upload Church Receipt Image (optional)
+              </label>
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    const compressed = await compressImage(file);
+                    setLodgReceiptImage(compressed);
+                  }
+                }}
+                className="text-xs cursor-pointer"
+              />
+              {lodgReceiptImage && (
+                <div className="mt-2 relative inline-block self-start">
+                  <img src={lodgReceiptImage} alt="Receipt Preview" className="h-20 w-20 object-cover rounded border border-border" />
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="sm"
+                    className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full p-0 text-[10px] flex items-center justify-center"
+                    onClick={() => setLodgReceiptImage('')}
+                  >
+                    ✕
+                  </Button>
+                </div>
+              )}
             </div>
 
             <DialogFooter className="mt-4">
@@ -2282,6 +2439,40 @@ export default function Home() {
               <Button type="submit">Save Statement</Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* LIGHTBOX DIALOG: RECEIPT PHOTO REVIEW */}
+      <Dialog open={!!previewImage} onOpenChange={() => setPreviewImage('')}>
+        <DialogContent className="max-w-[700px] flex flex-col items-center justify-center p-6">
+          <DialogHeader className="w-full">
+            <DialogTitle className="flex items-center gap-2">
+              <Eye className="h-5 w-5 text-emerald-600" />
+              Receipt Photo Review
+            </DialogTitle>
+          </DialogHeader>
+          <div className="mt-4 border border-border rounded-lg overflow-hidden bg-white max-h-[60vh] flex justify-center items-center w-full shadow-inner p-2">
+            <img 
+              src={previewImage} 
+              alt="Receipt Preview Fullscreen" 
+              className="max-w-full max-h-[50vh] object-contain rounded"
+            />
+          </div>
+          <DialogFooter className="w-full mt-4 flex justify-between items-center gap-4 flex-wrap">
+            <Button variant="outline" onClick={() => setPreviewImage('')}>
+              Close Preview
+            </Button>
+            {previewImage.startsWith('data:') && (
+              <a 
+                href={previewImage} 
+                download={`receipt_upload_${new Date().toISOString().split('T')[0]}.jpg`}
+              >
+                <Button>
+                  <Download className="h-4 w-4 mr-2" /> Download Photo
+                </Button>
+              </a>
+            )}
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
