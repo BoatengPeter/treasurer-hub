@@ -26,12 +26,15 @@ import {
   FileCheck,
   TrendingUp,
   ImageIcon,
-  Eye
+  Eye,
+  LogOut
 } from 'lucide-react';
 
+import { User } from '@supabase/supabase-js';
 import * as db from '@/lib/db';
 import type { Transaction, Meeting, Lodgment, ChurchStatement } from '@/lib/db';
 import SignaturePad from '@/components/SignaturePad';
+import AuthScreen from '@/components/AuthScreen';
 
 import {
   Card,
@@ -242,6 +245,11 @@ export default function Home() {
   // Receipt Preview Lightbox State
   const [previewImage, setPreviewImage] = useState('');
 
+  // Auth States
+  const [user, setUser] = useState<User | null>(null);
+  const [authBypass, setAuthBypass] = useState(false);
+  const [authMode, setAuthMode] = useState<'signin' | 'signup' | 'forgot' | 'update'>('signin');
+
   // Filter States
   const [txSearch, setTxSearch] = useState('');
   const [txFilterType, setTxFilterType] = useState('all');
@@ -312,6 +320,30 @@ export default function Home() {
     }
   }, [darkMode]);
 
+  // Supabase Auth listener
+  useEffect(() => {
+    const configured = db.isSupabaseConfigured();
+    if (configured) {
+      db.initSupabase();
+      const client = db.getSupabaseClient();
+      if (client) {
+        client.auth.getSession().then(({ data: { session } }) => {
+          setUser(session?.user ?? null);
+        });
+
+        const { data: { subscription } } = client.auth.onAuthStateChange((event, session) => {
+          setUser(session?.user ?? null);
+          if (event === 'PASSWORD_RECOVERY') {
+            setAuthBypass(false);
+            setAuthMode('update');
+          }
+        });
+
+        return () => subscription.unsubscribe();
+      }
+    }
+  }, [supabaseConnected]);
+
   // Load Database Data & Seed if empty
   const loadAllData = async () => {
     setLoading(true);
@@ -352,6 +384,16 @@ export default function Home() {
   useEffect(() => {
     loadAllData();
   }, []);
+
+  const handleLogOut = async () => {
+    const client = db.getSupabaseClient();
+    if (client) {
+      await client.auth.signOut();
+    }
+    setUser(null);
+    setAuthBypass(false);
+    loadAllData();
+  };
 
   // Summary Metrics calculations
   const metrics = useMemo(() => {
@@ -667,6 +709,10 @@ export default function Home() {
     return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
   };
 
+  if (db.isSupabaseConfigured() && !user && !authBypass) {
+    return <AuthScreen onSuccess={() => loadAllData()} onDemoMode={() => setAuthBypass(true)} />;
+  }
+
   return (
     <div className="flex h-screen overflow-hidden bg-background">
       
@@ -769,6 +815,16 @@ export default function Home() {
             {darkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             {darkMode ? 'Light Theme' : 'Dark Theme'}
           </Button>
+          {db.isSupabaseConfigured() && user && (
+            <Button 
+              variant="destructive" 
+              size="sm" 
+              onClick={handleLogOut}
+              className="w-full flex items-center justify-center gap-2 bg-rose-500/10 text-rose-600 hover:bg-rose-500 hover:text-white"
+            >
+              <LogOut className="h-4 w-4" /> Log Out
+            </Button>
+          )}
           <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
             <span className={`h-2 w-2 rounded-full ${supabaseConnected ? 'bg-emerald-500 shadow-[0_0_8px_#10b981]' : 'bg-amber-500 shadow-[0_0_8px_#f59e0b]'}`}></span>
             {supabaseConnected ? 'Supabase Connected' : 'Offline Storage fallback'}
@@ -817,6 +873,11 @@ export default function Home() {
             <button onClick={() => setActiveTab('settings')} className="flex items-center gap-3 px-4 py-3 rounded text-sm text-left">
               <Settings className="h-4 w-4" /> Settings
             </button>
+            {db.isSupabaseConfigured() && user && (
+              <button onClick={handleLogOut} className="flex items-center gap-3 px-4 py-3 rounded text-sm text-left text-rose-500 hover:text-rose-600 font-semibold border-t border-border/50">
+                <LogOut className="h-4 w-4" /> Log Out
+              </button>
+            )}
           </div>
         )}
       </div>

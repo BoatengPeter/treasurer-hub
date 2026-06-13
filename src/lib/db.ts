@@ -87,6 +87,10 @@ export const initSupabase = (): boolean => {
   return false;
 };
 
+export const getSupabaseClient = (): SupabaseClient | null => {
+  return supabase;
+};
+
 // Initialize client-side if possible
 if (typeof window !== 'undefined') {
   initSupabase();
