@@ -249,6 +249,8 @@ export default function Home() {
   const [user, setUser] = useState<User | null>(null);
   const [authBypass, setAuthBypass] = useState(false);
   const [authMode, setAuthMode] = useState<'signin' | 'signup' | 'forgot' | 'update'>('signin');
+  const [uploadingTxImage, setUploadingTxImage] = useState(false);
+  const [uploadingLodgImage, setUploadingLodgImage] = useState(false);
 
   // Filter States
   const [txSearch, setTxSearch] = useState('');
@@ -299,6 +301,51 @@ export default function Home() {
       };
       reader.readAsDataURL(file);
     });
+  };
+
+  // Upload image to Supabase Storage with local compression fallback
+  const uploadReceiptImage = async (file: File): Promise<string> => {
+    const client = db.getSupabaseClient();
+    if (client && supabaseConnected) {
+      try {
+        const fileExt = file.name.split('.').pop() || 'jpg';
+        const fileName = `${crypto.randomUUID()}.${fileExt}`;
+        const filePath = `${user?.id || 'anonymous'}/${fileName}`;
+
+        // Upload file to receipts bucket
+        const { data, error } = await client.storage
+          .from('receipts')
+          .upload(filePath, file, {
+            cacheControl: '3600',
+            upsert: false
+          });
+
+        if (error) {
+          // If bucket not found, attempt to create it
+          if (error.message.includes('Bucket not found') || error.message.includes('does not exist')) {
+            await client.storage.createBucket('receipts', { public: true });
+            const { data: retryData, error: retryError } = await client.storage
+              .from('receipts')
+              .upload(filePath, file);
+            if (retryError) throw retryError;
+          } else {
+            throw error;
+          }
+        }
+
+        // Retrieve public URL
+        const { data: { publicUrl } } = client.storage
+          .from('receipts')
+          .getPublicUrl(filePath);
+
+        return publicUrl;
+      } catch (err) {
+        console.warn('Supabase storage upload failed, falling back to local compression', err);
+      }
+    }
+
+    // Fallback to offline Base64 compression
+    return compressImage(file);
   };
 
   // Theme Syncing
@@ -2146,15 +2193,21 @@ export default function Home() {
               <Input
                 type="file"
                 accept="image/*"
+                disabled={uploadingTxImage}
                 onChange={async (e) => {
                   const file = e.target.files?.[0];
                   if (file) {
-                    const compressed = await compressImage(file);
-                    setTxReceiptImage(compressed);
+                    setUploadingTxImage(true);
+                    const url = await uploadReceiptImage(file);
+                    setTxReceiptImage(url);
+                    setUploadingTxImage(false);
                   }
                 }}
                 className="text-xs cursor-pointer"
               />
+              {uploadingTxImage && (
+                <p className="text-xs text-emerald-600 font-semibold animate-pulse mt-1">Uploading image file to storage...</p>
+              )}
               {txReceiptImage && (
                 <div className="mt-2 relative inline-block self-start">
                   <img src={txReceiptImage} alt="Receipt Preview" className="h-20 w-20 object-cover rounded border border-border" />
@@ -2368,15 +2421,21 @@ export default function Home() {
               <Input
                 type="file"
                 accept="image/*"
+                disabled={uploadingLodgImage}
                 onChange={async (e) => {
                   const file = e.target.files?.[0];
                   if (file) {
-                    const compressed = await compressImage(file);
-                    setLodgReceiptImage(compressed);
+                    setUploadingLodgImage(true);
+                    const url = await uploadReceiptImage(file);
+                    setLodgReceiptImage(url);
+                    setUploadingLodgImage(false);
                   }
                 }}
                 className="text-xs cursor-pointer"
               />
+              {uploadingLodgImage && (
+                <p className="text-xs text-emerald-600 font-semibold animate-pulse mt-1">Uploading image file to storage...</p>
+              )}
               {lodgReceiptImage && (
                 <div className="mt-2 relative inline-block self-start">
                   <img src={lodgReceiptImage} alt="Receipt Preview" className="h-20 w-20 object-cover rounded border border-border" />
