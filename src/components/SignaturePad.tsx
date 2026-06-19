@@ -31,28 +31,6 @@ export default function SignaturePad({ onSave, value, readOnly = false }: Signat
     }
   }, [value]);
 
-  // Adjust canvas resolution for high DPI displays
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const rect = canvas.getBoundingClientRect();
-    canvas.width = rect.width;
-    canvas.height = rect.height;
-
-    const ctx = canvas.getContext('2d');
-    if (ctx) {
-      ctx.strokeStyle = '#059669'; // Emerald primary line color
-      ctx.lineWidth = 3;
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-
-      if (!readOnly && !value) {
-        drawGuideline(canvas, ctx);
-      }
-    }
-  }, [readOnly, value]);
-
   const drawGuideline = (canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) => {
     ctx.save();
     ctx.strokeStyle = '#e2e8f0';
@@ -65,22 +43,45 @@ export default function SignaturePad({ onSave, value, readOnly = false }: Signat
     ctx.restore();
   };
 
-  const getCoordinates = (e: any) => {
+  // Adjust canvas resolution for high DPI displays
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width;
+    canvas.height = rect.height;
+
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      ctx.strokeStyle = '#059669';
+      ctx.lineWidth = 3;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+
+      if (!readOnly && !value) {
+        drawGuideline(canvas, ctx);
+      }
+    }
+  }, [readOnly, value]);
+
+  const getCoordinates = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
     if (!canvas) return { x: 0, y: 0 };
 
     const rect = canvas.getBoundingClientRect();
 
-    if (e.touches && e.touches.length > 0) {
+    if ('touches' in e && e.touches.length > 0) {
       return {
         x: e.touches[0].clientX - rect.left,
         y: e.touches[0].clientY - rect.top
       };
     }
 
+    const me = e as React.MouseEvent<HTMLCanvasElement>;
     return {
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top
+      x: me.clientX - rect.left,
+      y: me.clientY - rect.top
     };
   };
 
