@@ -25,6 +25,10 @@ interface DashboardState {
   authBypass: boolean;
   authMode: 'signin' | 'signup' | 'forgot' | 'update';
 
+  // Hydration (client-only to avoid SSR hydration mismatches)
+  hydrated: boolean;
+  setHydrated: () => void;
+
   // Auth setters (called from page.tsx lifecycle)
   setUser: (user: User | null) => void;
   setAuthBypass: (val: boolean) => void;
@@ -122,6 +126,10 @@ export const useDashboardStore = create<DashboardState>()((set, get) => ({
   user: null,
   authBypass: false,
   authMode: 'signin',
+
+  // Hydration
+  hydrated: false,
+  setHydrated: () => set({ hydrated: true }),
 
   // Auth setters
   setUser: (user) => set({ user }),

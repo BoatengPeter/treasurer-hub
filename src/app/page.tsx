@@ -32,17 +32,18 @@ export default function Home() {
   const {
     user, authBypass, loading, supabaseConnected, darkMode,
     setDarkMode, loadAllData, setAuthBypass, setUser, setAuthMode,
-    activeTab
+    activeTab, hydrated, setHydrated
   } = useDashboardStore();
 
   // Theme initialization from localStorage
   useEffect(() => {
+    setHydrated();
     if (typeof window !== 'undefined') {
       const savedTheme = localStorage.getItem('theme');
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
       setDarkMode(savedTheme === 'dark' || (!savedTheme && prefersDark));
     }
-  }, [setDarkMode]);
+  }, [setDarkMode, setHydrated]);
 
   // Theme sync to DOM
   useEffect(() => {
@@ -82,8 +83,8 @@ export default function Home() {
     loadAllData();
   }, [loadAllData]);
 
-  // Auth guard
-  if (db.isSupabaseConfigured() && !user && !authBypass) {
+  // Auth guard (only after hydration — server can't read localStorage)
+  if (hydrated && db.isSupabaseConfigured() && !user && !authBypass) {
     return <AuthScreen onSuccess={() => loadAllData()} onDemoMode={() => setAuthBypass(true)} />;
   }
 
