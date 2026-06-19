@@ -2,10 +2,11 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { formatCurrency, formatDate } from '@/lib/format-utils';
+import type { Meeting } from '@/lib/db';
+import { formatCurrency } from '@/lib/format-utils';
 
 interface RecentMeetingsTableProps {
-  meetings: any[];
+  meetings: Meeting[];
   onViewAll: () => void;
 }
 

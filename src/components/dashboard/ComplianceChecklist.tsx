@@ -1,11 +1,12 @@
 'use client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import type { Meeting, ChurchStatement } from '@/lib/db';
 import { FileCheck } from 'lucide-react';
 
 interface ComplianceChecklistProps {
   metrics: { cashOnHand: number };
-  meetings: { president_signature?: string }[];
-  statements: any[];
+  meetings: Meeting[];
+  statements: ChurchStatement[];
 }
 
 export default function ComplianceChecklist({ metrics, meetings, statements }: ComplianceChecklistProps) {

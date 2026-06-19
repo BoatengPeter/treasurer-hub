@@ -1,9 +1,10 @@
 'use client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import type { Transaction } from '@/lib/db';
 import { formatCurrency } from '@/lib/format-utils';
 
 interface PendingDepositsQueueProps {
-  transactions: any[];
+  transactions: Transaction[];
 }
 
 export default function PendingDepositsQueue({ transactions }: PendingDepositsQueueProps) {
