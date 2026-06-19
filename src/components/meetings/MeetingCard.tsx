@@ -1,5 +1,6 @@
 'use client';
 import { useDashboardStore } from '@/stores/dashboard-store';
+import Image from 'next/image';
 import { Calendar, Edit, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -59,7 +60,7 @@ export default function MeetingCard({ meeting }: MeetingCardProps) {
               <div className="text-center w-full max-w-[280px]">
                 <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground block mb-2">Acknowledgement Sign-off</span>
                 <div className="border border-border rounded-lg p-3 bg-white flex justify-center items-center max-h-[100px]">
-                  <img src={m.president_signature} alt="President Signature" className="max-h-[80px] object-contain" />
+                  <Image src={m.president_signature} alt="President Signature" width={280} height={80} className="max-h-[80px] object-contain" unoptimized />
                 </div>
                 <p className="text-[10px] text-muted-foreground mt-2">Signed by <strong>{m.president_name}</strong> on {formatDate(m.signed_at || m.created_at || '')}</p>
               </div>

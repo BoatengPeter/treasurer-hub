@@ -11,8 +11,8 @@ export default function StatusBanner() {
         <Database className={`h-4 w-4 ${supabaseConnected ? 'text-emerald-500' : 'text-amber-500'}`} />
         <span>
           {supabaseConnected
-            ? 'Cloud sync enabled. All records, files, and signature grids are securely synchronized.'
-            : 'Using browser fallback storage. Setup Supabase settings to synchronise with mobile devices.'}
+            ? 'Cloud sync enabled. All records are securely synchronized.'
+            : 'Supabase cloud is not available. Check your connection.'}
         </span>
       </div>
       <Button variant="ghost" size="sm" onClick={loadAllData} className="h-7 px-2">

@@ -30,8 +30,8 @@ import AuthScreen from '@/components/AuthScreen';
 
 export default function Home() {
   const {
-    user, authBypass, loading, supabaseConnected, darkMode,
-    setDarkMode, loadAllData, setAuthBypass, setUser, setAuthMode,
+    user, loading, supabaseConnected, darkMode,
+    setDarkMode, loadAllData, setUser, setAuthMode,
     activeTab, hydrated, setHydrated
   } = useDashboardStore();
 
@@ -69,14 +69,13 @@ export default function Home() {
         const { data: { subscription } } = client.auth.onAuthStateChange((event, session) => {
           setUser(session?.user ?? null);
           if (event === 'PASSWORD_RECOVERY') {
-            setAuthBypass(false);
             setAuthMode('update');
           }
         });
         return () => subscription.unsubscribe();
       }
     }
-  }, [supabaseConnected, setUser, setAuthBypass, setAuthMode]);
+  }, [supabaseConnected, setUser, setAuthMode]);
 
   // Load data on mount
   useEffect(() => {
@@ -84,8 +83,8 @@ export default function Home() {
   }, [loadAllData]);
 
   // Auth guard (only after hydration — server can't read localStorage)
-  if (hydrated && db.isSupabaseConfigured() && !user && !authBypass) {
-    return <AuthScreen onSuccess={() => loadAllData()} onDemoMode={() => setAuthBypass(true)} />;
+  if (hydrated && db.isSupabaseConfigured() && !user) {
+    return <AuthScreen onSuccess={() => loadAllData()} />;
   }
 
   return (

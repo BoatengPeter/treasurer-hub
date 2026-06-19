@@ -4,7 +4,6 @@ import type { User } from '@supabase/supabase-js';
 import type { Transaction, Meeting, Lodgment, ChurchStatement } from '@/lib/db';
 import * as db from '@/lib/db';
 import { uploadImageToStorage } from '@/lib/image-utils';
-import { sampleData } from '@/lib/sample-data';
 
 interface DashboardState {
   // Navigation & Theme
@@ -22,7 +21,6 @@ interface DashboardState {
 
   // Auth
   user: User | null;
-  authBypass: boolean;
   authMode: 'signin' | 'signup' | 'forgot' | 'update';
 
   // Hydration (client-only to avoid SSR hydration mismatches)
@@ -31,9 +29,7 @@ interface DashboardState {
 
   // Auth setters (called from page.tsx lifecycle)
   setUser: (user: User | null) => void;
-  setAuthBypass: (val: boolean) => void;
   setAuthMode: (val: 'signin' | 'signup' | 'forgot' | 'update') => void;
-  setSupabaseConnected: (val: boolean) => void;
 
   // Modal states
   isTxModalOpen: boolean;
@@ -56,10 +52,6 @@ interface DashboardState {
   txFilterType: string;
   txFilterCategory: string;
 
-  // Settings
-  dbSettings: { url: string; key: string };
-  settingsStatusMsg: { text: string; type: string };
-
   // Reports
   reportType: string;
   reportQuarter: 'Q1' | 'Q2' | 'Q3' | 'Q4';
@@ -75,8 +67,6 @@ interface DashboardState {
   setReportType: (val: string) => void;
   setReportQuarter: (val: 'Q1' | 'Q2' | 'Q3' | 'Q4') => void;
   setReportYear: (val: string) => void;
-  setDbSettings: (val: { url: string; key: string }) => void;
-  setSettingsStatusMsg: (val: { text: string; type: string }) => void;
   setIsTxModalOpen: (val: boolean) => void;
   setEditingTx: (val: Transaction | null) => void;
   setTxReceiptImage: (val: string) => void;
@@ -103,8 +93,6 @@ interface DashboardState {
   handleDeleteMeeting: (id: string) => Promise<void>;
   handleDeleteLodgment: (id: string) => Promise<void>;
   handleDeleteStatement: (id: string) => Promise<void>;
-  handleSaveDbSettings: (e: React.FormEvent<HTMLFormElement>) => void;
-  handleJsonImport: (e: React.ChangeEvent<HTMLInputElement>) => void;
   uploadReceiptImage: (file: File) => Promise<string>;
 }
 
@@ -124,7 +112,6 @@ export const useDashboardStore = create<DashboardState>()((set, get) => ({
 
   // Auth
   user: null,
-  authBypass: false,
   authMode: 'signin',
 
   // Hydration
@@ -133,9 +120,7 @@ export const useDashboardStore = create<DashboardState>()((set, get) => ({
 
   // Auth setters
   setUser: (user) => set({ user }),
-  setAuthBypass: (val) => set({ authBypass: val }),
   setAuthMode: (val) => set({ authMode: val }),
-  setSupabaseConnected: (val) => set({ supabaseConnected: val }),
 
   // Modal states
   isTxModalOpen: false,
@@ -158,10 +143,6 @@ export const useDashboardStore = create<DashboardState>()((set, get) => ({
   txFilterType: 'all',
   txFilterCategory: 'all',
 
-  // Settings
-  dbSettings: { url: '', key: '' },
-  settingsStatusMsg: { text: '', type: '' },
-
   // Reports
   reportType: 'both',
   reportQuarter: 'Q2',
@@ -177,8 +158,6 @@ export const useDashboardStore = create<DashboardState>()((set, get) => ({
   setReportType: (val) => set({ reportType: val }),
   setReportQuarter: (val) => set({ reportQuarter: val }),
   setReportYear: (val) => set({ reportYear: val }),
-  setDbSettings: (val) => set({ dbSettings: val }),
-  setSettingsStatusMsg: (val) => set({ settingsStatusMsg: val }),
   setIsTxModalOpen: (val) => set({ isTxModalOpen: val }),
   setEditingTx: (val) => set({ editingTx: val }),
   setTxReceiptImage: (val) => set({ txReceiptImage: val }),
@@ -198,25 +177,15 @@ export const useDashboardStore = create<DashboardState>()((set, get) => ({
   loadAllData: async () => {
     set({ loading: true });
     try {
-      const isConfigured = db.isSupabaseConfigured();
-      set({ supabaseConnected: db.getSupabaseStatus(), dbSettings: db.getSettings() });
+      db.initSupabase();
+      set({ supabaseConnected: db.getSupabaseStatus() });
 
-      let txs = await db.getTransactions();
-      let meets = await db.getMeetings();
-      let lodgs = await db.getLodgments();
-      let stmts = await db.getStatements();
-
-      // Seed mock data if completely empty
-      if (txs.length === 0 && meets.length === 0 && lodgs.length === 0 && !isConfigured) {
-        localStorage.setItem('treasurer_transactions', JSON.stringify(sampleData.transactions));
-        localStorage.setItem('treasurer_meetings', JSON.stringify(sampleData.meetings));
-        localStorage.setItem('treasurer_lodgments', JSON.stringify(sampleData.lodgments));
-        localStorage.setItem('treasurer_church_statements', JSON.stringify(sampleData.statements));
-        txs = sampleData.transactions;
-        meets = sampleData.meetings;
-        lodgs = sampleData.lodgments;
-        stmts = sampleData.statements;
-      }
+      const [txs, meets, lodgs, stmts] = await Promise.all([
+        db.getTransactions(),
+        db.getMeetings(),
+        db.getLodgments(),
+        db.getStatements(),
+      ]);
 
       set({ transactions: txs, meetings: meets, lodgments: lodgs, statements: stmts });
     } catch (e) {
@@ -229,7 +198,7 @@ export const useDashboardStore = create<DashboardState>()((set, get) => ({
   handleLogOut: async () => {
     const client = db.getSupabaseClient();
     if (client) await client.auth.signOut();
-    set({ user: null, authBypass: false });
+    set({ user: null });
     get().loadAllData();
   },
 
@@ -404,39 +373,6 @@ export const useDashboardStore = create<DashboardState>()((set, get) => ({
       await db.deleteStatement(id);
       set({ statements: await db.getStatements() });
     }
-  },
-
-  handleSaveDbSettings: (e) => {
-    e.preventDefault();
-    const { dbSettings } = get();
-    const success = db.saveSettings(dbSettings.url, dbSettings.key);
-    if (success) {
-      set({ settingsStatusMsg: { text: 'Connected and synced to Supabase!', type: 'success' }, supabaseConnected: true });
-      get().loadAllData();
-    } else if (!dbSettings.url && !dbSettings.key) {
-      set({ settingsStatusMsg: { text: 'Using local storage fallback.', type: 'info' }, supabaseConnected: false });
-      get().loadAllData();
-    } else {
-      set({ settingsStatusMsg: { text: 'Failed to connect. Verify your configuration.', type: 'error' }, supabaseConnected: false });
-    }
-  },
-
-  handleJsonImport: (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = async (event) => {
-      if (typeof event.target?.result === 'string') {
-        const res = db.importBackup(event.target.result);
-        if (res.success) {
-          alert('Backup restored successfully!');
-          get().loadAllData();
-        } else {
-          alert(`Failed to restore backup: ${res.error}`);
-        }
-      }
-    };
-    reader.readAsText(file);
   },
 
   uploadReceiptImage: async (file) => {

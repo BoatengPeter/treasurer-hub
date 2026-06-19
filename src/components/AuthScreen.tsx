@@ -4,16 +4,14 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Database, Mail, Lock, Sparkles, ArrowRight, KeyRound } from 'lucide-react';
-import { initSupabase } from '@/lib/db';
-import { createClient } from '@supabase/supabase-js';
+import { Database, Mail, Lock, ArrowRight, KeyRound } from 'lucide-react';
+import * as db from '@/lib/db';
 
 interface AuthScreenProps {
   onSuccess: () => void;
-  onDemoMode: () => void;
 }
 
-export default function AuthScreen({ onSuccess, onDemoMode }: AuthScreenProps) {
+export default function AuthScreen({ onSuccess }: AuthScreenProps) {
   const [mode, setMode] = useState<'signin' | 'signup' | 'forgot' | 'update'>('signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -22,14 +20,9 @@ export default function AuthScreen({ onSuccess, onDemoMode }: AuthScreenProps) {
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Helper to get active Supabase client for authentication
   const getClient = () => {
-    const localUrl = localStorage.getItem('supabase_url');
-    const localKey = localStorage.getItem('supabase_anon_key');
-    if (localUrl && localKey) {
-      return createClient(localUrl, localKey);
-    }
-    return null;
+    db.initSupabase();
+    return db.getSupabaseClient();
   };
 
   const handleAuth = async (e: React.FormEvent) => {
@@ -40,7 +33,7 @@ export default function AuthScreen({ onSuccess, onDemoMode }: AuthScreenProps) {
 
     const client = getClient();
     if (!client) {
-      setError('Supabase credentials not found. Configure them or use local storage.');
+      setError('Supabase is not configured. Check your environment variables.');
       setLoading(false);
       return;
     }
@@ -75,8 +68,8 @@ export default function AuthScreen({ onSuccess, onDemoMode }: AuthScreenProps) {
         setMessage('Password updated successfully! You can now log in.');
         setMode('signin');
       }
-    } catch (err: any) {
-      setError(err.message || 'An error occurred during authentication');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred during authentication');
     } finally {
       setLoading(false);
     }
@@ -85,7 +78,6 @@ export default function AuthScreen({ onSuccess, onDemoMode }: AuthScreenProps) {
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 p-4 relative overflow-hidden">
       
-      {/* Visual background shapes */}
       <div className="absolute top-[-20%] left-[-20%] w-[60%] h-[60%] rounded-full bg-emerald-500/5 blur-3xl" />
       <div className="absolute bottom-[-20%] right-[-20%] w-[60%] h-[60%] rounded-full bg-amber-500/5 blur-3xl" />
 
@@ -238,14 +230,7 @@ export default function AuthScreen({ onSuccess, onDemoMode }: AuthScreenProps) {
             </button>
           )}
 
-          <div className="w-full border-t border-border/50 pt-3 flex justify-between items-center gap-2">
-            <button
-              onClick={onDemoMode}
-              className="text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:underline cursor-pointer"
-            >
-              Access Offline (Local Storage)
-            </button>
-            
+          <div className="w-full border-t border-border/50 pt-3 flex justify-end items-center gap-2">
             <div className="flex items-center gap-1 text-[10px]">
               <Database className="h-3.5 w-3.5" />
               <span>TLS Secured</span>

@@ -73,7 +73,7 @@ export default function Sidebar() {
         )}
         <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
           <span className={`h-2 w-2 rounded-full ${supabaseConnected ? 'bg-emerald-500 shadow-[0_0_8px_#10b981]' : 'bg-amber-500 shadow-[0_0_8px_#f59e0b]'}`}></span>
-          {supabaseConnected ? 'Supabase Connected' : 'Offline Storage fallback'}
+          {supabaseConnected ? 'Supabase Connected' : 'Supabase Disconnected'}
         </div>
       </div>
     </aside>

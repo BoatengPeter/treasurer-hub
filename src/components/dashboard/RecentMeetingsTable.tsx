@@ -1,4 +1,5 @@
 'use client';
+import Image from 'next/image';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -43,7 +44,7 @@ export default function RecentMeetingsTable({ meetings, onViewAll }: RecentMeeti
                 <TableCell>
                   {m.president_signature ? (
                     <div className="flex items-center gap-1.5 text-xs text-emerald-600 font-medium">
-                      <img src={m.president_signature} alt="Sig" className="h-5 max-w-[60px] object-contain" />
+                      <Image src={m.president_signature} alt="Sig" width={60} height={20} className="h-5 max-w-[60px] object-contain" unoptimized />
                       <span>✓ Signed</span>
                     </div>
                   ) : (

@@ -2,6 +2,7 @@
 import { useDashboardStore } from '@/stores/dashboard-store';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import Image from 'next/image';
 import { Eye, Download } from 'lucide-react';
 
 export default function ReceiptPreview() {
@@ -16,7 +17,7 @@ export default function ReceiptPreview() {
           </DialogTitle>
         </DialogHeader>
         <div className="mt-4 border border-border rounded-lg overflow-hidden bg-white max-h-[60vh] flex justify-center items-center w-full shadow-inner p-2">
-          <img src={previewImage} alt="Receipt Preview Fullscreen" className="max-w-full max-h-[50vh] object-contain rounded" />
+          <Image src={previewImage} alt="Receipt Preview Fullscreen" width={800} height={600} className="max-w-full max-h-[50vh] object-contain rounded" unoptimized />
         </div>
         <DialogFooter className="w-full mt-4 flex justify-between items-center gap-4 flex-wrap">
           <Button variant="outline" onClick={() => setPreviewImage('')}>Close Preview</Button>

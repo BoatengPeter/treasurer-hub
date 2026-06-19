@@ -1,6 +1,7 @@
 'use client';
 
 import { useDashboardStore } from '@/stores/dashboard-store';
+import Image from 'next/image';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -141,7 +142,7 @@ export default function TransactionModal() {
             )}
             {txReceiptImage && (
               <div className="mt-2 relative inline-block self-start">
-                <img src={txReceiptImage} alt="Receipt Preview" className="h-20 w-20 object-cover rounded border border-border" />
+                <Image src={txReceiptImage} alt="Receipt Preview" width={80} height={80} className="h-20 w-20 object-cover rounded border border-border" unoptimized />
                 <Button
                   type="button"
                   variant="destructive"
