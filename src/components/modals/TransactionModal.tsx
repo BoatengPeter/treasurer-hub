@@ -10,7 +10,7 @@ import { ImageIcon } from 'lucide-react';
 export default function TransactionModal() {
   const {
     isTxModalOpen, setIsTxModalOpen,
-    editingTx, setEditingTx,
+    editingTx,
     txReceiptImage, setTxReceiptImage,
     uploadingTxImage, setUploadingTxImage,
     handleSaveTransaction, uploadReceiptImage,

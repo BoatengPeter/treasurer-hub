@@ -44,7 +44,7 @@ export default function ReportsTab() {
             </select>
           </div>
           <div className="w-[140px]">
-            <select value={reportQuarter} onChange={(e) => setReportQuarter(e.target.value as any)}
+            <select value={reportQuarter} onChange={(e) => setReportQuarter(e.target.value as 'Q1' | 'Q2' | 'Q3' | 'Q4')}
               className="w-full h-9 rounded-md border border-input bg-card px-3 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
               <option value="Q1">Q1 (Jan - Mar)</option>
               <option value="Q2">Q2 (Apr - Jun)</option>

@@ -32,7 +32,7 @@ export default function Home() {
   const {
     user, authBypass, loading, supabaseConnected, darkMode,
     setDarkMode, loadAllData, setAuthBypass, setUser, setAuthMode,
-    activeTab, setSupabaseConnected, setDbSettings
+    activeTab
   } = useDashboardStore();
 
   // Theme initialization from localStorage

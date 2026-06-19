@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import * as db from '@/lib/db';
 
 export default function MobileHeader() {
-  const { activeTab, darkMode, mobileMenuOpen, supabaseConnected, user, setActiveTab, setDarkMode, setMobileMenuOpen, handleLogOut } = useDashboardStore();
+  const { darkMode, mobileMenuOpen, user, setActiveTab, setDarkMode, setMobileMenuOpen, handleLogOut } = useDashboardStore();
   return (
     <div className="no-print flex md:hidden absolute top-0 left-0 right-0 h-16 bg-card border-b border-border items-center justify-between px-6 z-30">
       <div className="flex items-center gap-2">

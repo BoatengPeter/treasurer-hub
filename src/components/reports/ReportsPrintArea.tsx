@@ -1,7 +1,6 @@
 'use client';
 import { Card } from '@/components/ui/card';
 import { formatCurrency } from '@/lib/format-utils';
-import type { Transaction } from '@/lib/db';
 
 interface ReportsPrintAreaProps {
   reportData: {
@@ -25,7 +24,7 @@ export default function ReportsPrintArea({ reportData, reportQuarter, reportYear
     <Card className="p-10 md:p-14" id="printable-area">
       <div className="text-center pb-6 border-b-4 border-double border-slate-300 dark:border-slate-800 mb-8">
         <h2 className="font-heading text-xl font-bold uppercase tracking-wider text-slate-900 dark:text-slate-100">LOCAL CHURCH YOUTH FELLOWSHIP</h2>
-        <h3 className="text-sm font-semibold tracking-widest text-slate-500 uppercase mt-1">TREASURER'S COMPLIANCE REPORT</h3>
+        <h3 className="text-sm font-semibold tracking-widest text-slate-500 uppercase mt-1">TREASURER&apos;S COMPLIANCE REPORT</h3>
         <p className="text-xs font-semibold text-slate-700 dark:text-slate-300 mt-2">
           Quarter: {reportQuarter} - {reportYear} ({quarterLabels[reportQuarter]}, {reportYear})
         </p>

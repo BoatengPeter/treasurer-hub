@@ -10,8 +10,7 @@ import SignaturePad from '@/components/SignaturePad';
 export default function MeetingModal() {
   const {
     isMeetModalOpen, setIsMeetModalOpen,
-    editingMeeting, setEditingMeeting,
-    tempSignature, setTempSignature,
+    editingMeeting, setTempSignature,
     handleSaveMeeting,
   } = useDashboardStore();
 

@@ -10,7 +10,7 @@ import { ImageIcon } from 'lucide-react';
 export default function LodgmentModal() {
   const {
     isLodgeModalOpen, setIsLodgeModalOpen,
-    editingLodgment, setEditingLodgment,
+    editingLodgment,
     lodgReceiptImage, setLodgReceiptImage,
     uploadingLodgImage, setUploadingLodgImage,
     handleSaveLodgment, uploadReceiptImage,

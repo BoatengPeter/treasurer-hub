@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 export default function StatementModal() {
   const {
     isStmtModalOpen, setIsStmtModalOpen,
-    editingStatement, setEditingStatement,
+    editingStatement,
     handleSaveStatement,
   } = useDashboardStore();
 
