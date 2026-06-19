@@ -1,12 +1,16 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useDashboardStore } from '@/stores/dashboard-store';
-import { Users, Plus, X, Check, Trash2, Edit3, DollarSign } from 'lucide-react';
+import { Users, Plus, X, Check, Trash2, Edit3, DollarSign, History } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import HelpButton from '@/components/ui/HelpButton';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { formatCurrency, formatDate } from '@/lib/format-utils';
+import DatePicker from '@/components/ui/DatePicker';
+import type { Member } from '@/lib/db';
 
 export default function MembersTab() {
   const { members, handleSaveMember, setConfirmDelete, handleBulkDuesEntry } = useDashboardStore();
@@ -22,6 +26,7 @@ export default function MembersTab() {
   const [bulkDate, setBulkDate] = useState(new Date().toISOString().split('T')[0]);
   const [bulkAmount, setBulkAmount] = useState('10');
   const [bulkPaymentMethod, setBulkPaymentMethod] = useState('Cash');
+  const [historyMember, setHistoryMember] = useState<Member | null>(null);
 
   const addMember = async () => {
     if (!newName.trim()) return;
@@ -29,6 +34,18 @@ export default function MembersTab() {
     setNewName('');
     setNewPhone('');
   };
+
+  const memberTxs = useMemo(() => {
+    if (!historyMember) return [];
+    const { transactions } = useDashboardStore.getState();
+    return transactions
+      .filter(t => t.member_id === historyMember.id)
+      .sort((a, b) => b.date.localeCompare(a.date));
+  }, [historyMember]);
+
+  const memberTotal = useMemo(() =>
+    memberTxs.reduce((s, t) => s + Number(t.amount), 0),
+  [memberTxs]);
 
   const saveEdit = async (id: string) => {
     if (!editName.trim()) return;
@@ -118,6 +135,9 @@ export default function MembersTab() {
                             {m.status}
                           </span>
                           <div className="flex gap-1 flex-shrink-0">
+                            <Button size="sm" variant="ghost" onClick={() => setHistoryMember(m)} className="h-8 w-8 p-0">
+                              <History className="h-3.5 w-3.5" />
+                            </Button>
                             <Button size="sm" variant="ghost" onClick={() => { setEditingId(m.id); setEditName(m.name); setEditPhone(m.phone || ''); }} className="h-8 w-8 p-0">
                               <Edit3 className="h-3.5 w-3.5" />
                             </Button>
@@ -168,7 +188,7 @@ export default function MembersTab() {
                 <div className="flex flex-col gap-3">
                   <div>
                     <label className="text-xs font-semibold uppercase tracking-wider block mb-1">Date</label>
-                    <Input type="date" value={bulkDate} onChange={e => setBulkDate(e.target.value)} />
+                    <DatePicker value={bulkDate} onChange={setBulkDate} />
                   </div>
                   <div>
                     <label className="text-xs font-semibold uppercase tracking-wider block mb-1">Amount per person (GHS)</label>
@@ -193,6 +213,43 @@ export default function MembersTab() {
           )}
         </div>
       </div>
+
+      <Dialog open={!!historyMember} onOpenChange={(open) => { if (!open) setHistoryMember(null); }}>
+        <DialogContent className="max-w-[600px] max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <History className="h-5 w-5 text-emerald-600" />
+              Payment History — {historyMember?.name}
+            </DialogTitle>
+          </DialogHeader>
+          {memberTxs.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-8">No payments recorded for this member.</p>
+          ) : (
+            <div className="text-sm">
+              <div className="grid grid-cols-[1fr_auto_auto_auto] gap-2 font-bold text-muted-foreground uppercase tracking-wider text-xs pb-2 border-b border-border mb-2">
+                <span>Date</span>
+                <span className="text-right">Category</span>
+                <span className="text-right w-20">Method</span>
+                <span className="text-right w-24">Amount</span>
+              </div>
+              {memberTxs.map(tx => (
+                <div key={tx.id} className="grid grid-cols-[1fr_auto_auto_auto] gap-2 py-1.5 border-b border-border/50">
+                  <span>{formatDate(tx.date)}</span>
+                  <span className="text-right text-muted-foreground">{tx.category}</span>
+                  <span className="text-right w-20 text-muted-foreground">{tx.payment_method}</span>
+                  <span className="text-right w-24 font-mono">{formatCurrency(tx.amount)}</span>
+                </div>
+              ))}
+              <div className="grid grid-cols-[1fr_auto_auto_auto] gap-2 py-2 mt-2 border-t-2 border-slate-800 font-bold text-sm">
+                <span>Total</span>
+                <span></span>
+                <span className="text-right w-20"></span>
+                <span className="text-right w-24 text-emerald-600">{formatCurrency(memberTotal)}</span>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

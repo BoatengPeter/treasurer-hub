@@ -5,7 +5,7 @@ import type { User } from '@supabase/supabase-js';
 import type { Transaction, Meeting, Lodgment, ChurchStatement, Member } from '@/lib/db';
 import * as db from '@/lib/db';
 import { uploadImageToStorage } from '@/lib/image-utils';
-import { transactionFormSchema } from '@/lib/validation';
+import type { TransactionFormData } from '@/lib/validation';
 
 interface DashboardState {
   // Navigation & Theme
@@ -54,19 +54,18 @@ interface DashboardState {
   uploadingTxImage: boolean;
   uploadingLodgImage: boolean;
 
-  // Form Errors
-  txFormErrors: Record<string, string[]>;
-  setTxFormErrors: (val: Record<string, string[]>) => void;
-
   // Filters
   txSearch: string;
   txFilterType: string;
   txFilterCategory: string;
+  groupByWeek: boolean;
 
   // Reports
   reportType: string;
   reportQuarter: 'Q1' | 'Q2' | 'Q3' | 'Q4';
   reportYear: string;
+  duesReportPeriod: 'weekly' | 'monthly' | 'yearly';
+  duesReportDate: string;
 
   // Setters
   setActiveTab: (tab: string) => void;
@@ -75,9 +74,12 @@ interface DashboardState {
   setTxSearch: (val: string) => void;
   setTxFilterType: (val: string) => void;
   setTxFilterCategory: (val: string) => void;
+  setGroupByWeek: (val: boolean) => void;
   setReportType: (val: string) => void;
   setReportQuarter: (val: 'Q1' | 'Q2' | 'Q3' | 'Q4') => void;
   setReportYear: (val: string) => void;
+  setDuesReportPeriod: (val: 'weekly' | 'monthly' | 'yearly') => void;
+  setDuesReportDate: (val: string) => void;
   setIsTxModalOpen: (val: boolean) => void;
   setEditingTx: (val: Transaction | null) => void;
   setTxReceiptImage: (val: string) => void;
@@ -96,7 +98,7 @@ interface DashboardState {
   // Complex actions
   loadAllData: () => Promise<void>;
   handleLogOut: () => Promise<void>;
-  handleSaveTransaction: (e: React.FormEvent<HTMLFormElement>) => Promise<void>;
+  handleSaveTransaction: (vals: TransactionFormData) => Promise<void>;
   handleSaveMeeting: (e: React.FormEvent<HTMLFormElement>) => Promise<void>;
   handleSaveLodgment: (e: React.FormEvent<HTMLFormElement>) => Promise<void>;
   handleSaveStatement: (e: React.FormEvent<HTMLFormElement>) => Promise<void>;
@@ -159,19 +161,18 @@ export const useDashboardStore = create<DashboardState>()(
   uploadingTxImage: false,
   uploadingLodgImage: false,
 
-  // Form Errors
-  txFormErrors: {},
-  setTxFormErrors: (val) => set({ txFormErrors: val }),
-
   // Filters
   txSearch: '',
   txFilterType: 'all',
   txFilterCategory: 'all',
+  groupByWeek: false,
 
   // Reports
   reportType: 'both',
   reportQuarter: 'Q2',
   reportYear: '2026',
+  duesReportPeriod: 'weekly',
+  duesReportDate: new Date().toISOString().split('T')[0],
 
   // Setters
   setActiveTab: (tab) => set({ activeTab: tab }),
@@ -180,9 +181,12 @@ export const useDashboardStore = create<DashboardState>()(
   setTxSearch: (val) => set({ txSearch: val }),
   setTxFilterType: (val) => set({ txFilterType: val }),
   setTxFilterCategory: (val) => set({ txFilterCategory: val }),
+  setGroupByWeek: (val) => set({ groupByWeek: val }),
   setReportType: (val) => set({ reportType: val }),
   setReportQuarter: (val) => set({ reportQuarter: val }),
   setReportYear: (val) => set({ reportYear: val }),
+  setDuesReportPeriod: (val) => set({ duesReportPeriod: val }),
+  setDuesReportDate: (val) => set({ duesReportDate: val }),
   setIsTxModalOpen: (val) => set({ isTxModalOpen: val }),
   setEditingTx: (val) => set({ editingTx: val }),
   setTxReceiptImage: (val) => set({ txReceiptImage: val }),
@@ -228,20 +232,8 @@ export const useDashboardStore = create<DashboardState>()(
     get().loadAllData();
   },
 
-  handleSaveTransaction: async (e) => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
+  handleSaveTransaction: async (vals) => {
     const { editingTx, txReceiptImage, user } = get();
-
-    const raw = Object.fromEntries(formData.entries());
-    const result = transactionFormSchema.safeParse({ ...raw, receipt_image: txReceiptImage });
-    if (!result.success) {
-      set({ txFormErrors: result.error.flatten().fieldErrors });
-      return;
-    }
-    set({ txFormErrors: {} });
-
-    const vals = result.data;
     const tx: Partial<Transaction> = {
       id: editingTx?.id || undefined,
       date: vals.date,
@@ -266,7 +258,6 @@ export const useDashboardStore = create<DashboardState>()(
         isTxModalOpen: false,
         editingTx: null,
         txReceiptImage: '',
-        txFormErrors: {},
       });
     }
   },
@@ -480,4 +471,4 @@ export const useDashboardStore = create<DashboardState>()(
     const { supabaseConnected, user } = get();
     return uploadImageToStorage(file, supabaseConnected, user?.id);
   },
-}), { name: 'treasurer-store', partialize: (state) => ({ activeTab: state.activeTab }) }));
+}), { name: 'treasurer-store', partialize: (state) => ({ activeTab: state.activeTab, duesReportPeriod: state.duesReportPeriod, duesReportDate: state.duesReportDate, groupByWeek: state.groupByWeek }) }));

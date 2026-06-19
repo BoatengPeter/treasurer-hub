@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useDashboardStore } from '@/stores/dashboard-store';
 import Image from 'next/image';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
@@ -7,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { ImageIcon } from 'lucide-react';
+import DatePicker from '@/components/ui/DatePicker';
 
 export default function LodgmentModal() {
   const {
@@ -16,6 +18,8 @@ export default function LodgmentModal() {
     uploadingLodgImage, setUploadingLodgImage,
     handleSaveLodgment, uploadReceiptImage,
   } = useDashboardStore();
+
+  const [lodgmentDate, setLodgmentDate] = useState(editingLodgment?.date || new Date().toISOString().split('T')[0]);
 
   return (
     <Dialog open={isLodgeModalOpen} onOpenChange={setIsLodgeModalOpen}>
@@ -27,12 +31,7 @@ export default function LodgmentModal() {
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-semibold uppercase tracking-wider">Date of Deposit</label>
-              <Input
-                type="date"
-                name="date"
-                required
-                defaultValue={editingLodgment?.date || new Date().toISOString().split('T')[0]}
-              />
+              <DatePicker name="date" value={lodgmentDate} onChange={setLodgmentDate} required />
             </div>
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-semibold uppercase tracking-wider">Amount Lodged (GHS)</label>

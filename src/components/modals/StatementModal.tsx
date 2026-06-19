@@ -1,10 +1,12 @@
 'use client';
 
+import { useState } from 'react';
 import { useDashboardStore } from '@/stores/dashboard-store';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import DatePicker from '@/components/ui/DatePicker';
 
 export default function StatementModal() {
   const {
@@ -12,6 +14,9 @@ export default function StatementModal() {
     editingStatement,
     handleSaveStatement,
   } = useDashboardStore();
+
+  const [stmtPeriodStart, setStmtPeriodStart] = useState(editingStatement?.period_start || '');
+  const [stmtPeriodEnd, setStmtPeriodEnd] = useState(editingStatement?.period_end || '');
 
   return (
     <Dialog open={isStmtModalOpen} onOpenChange={setIsStmtModalOpen}>
@@ -23,21 +28,11 @@ export default function StatementModal() {
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-semibold uppercase tracking-wider">Period Start Date</label>
-              <Input
-                type="date"
-                name="period_start"
-                required
-                defaultValue={editingStatement?.period_start || ''}
-              />
+              <DatePicker name="period_start" value={stmtPeriodStart} onChange={setStmtPeriodStart} required />
             </div>
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-semibold uppercase tracking-wider">Period End Date</label>
-              <Input
-                type="date"
-                name="period_end"
-                required
-                defaultValue={editingStatement?.period_end || ''}
-              />
+              <DatePicker name="period_end" value={stmtPeriodEnd} onChange={setStmtPeriodEnd} required />
             </div>
           </div>
 

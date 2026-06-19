@@ -1,11 +1,11 @@
 'use client';
 import { useDashboardStore } from '@/stores/dashboard-store';
-import { Search } from 'lucide-react';
+import { Search, CalendarRange } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 
 export default function TransactionFilters() {
-  const { txSearch, txFilterType, txFilterCategory, setTxSearch, setTxFilterType, setTxFilterCategory } = useDashboardStore();
+  const { txSearch, txFilterType, txFilterCategory, groupByWeek, setTxSearch, setTxFilterType, setTxFilterCategory, setGroupByWeek } = useDashboardStore();
 
   return (
     <Card className="no-print">
@@ -37,6 +37,18 @@ export default function TransactionFilters() {
             <option value="Other">Other</option>
           </select>
         </div>
+        <button
+          type="button"
+          onClick={() => setGroupByWeek(!groupByWeek)}
+          className={`flex items-center gap-1.5 h-9 px-3 rounded-md text-sm border transition-colors ${
+            groupByWeek
+              ? 'bg-emerald-600 text-white border-emerald-600'
+              : 'bg-card text-muted-foreground border-input hover:bg-accent'
+          }`}
+        >
+          <CalendarRange className="h-4 w-4" />
+          Group by Week
+        </button>
       </CardContent>
     </Card>
   );

@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import SignaturePad from '@/components/SignaturePad';
 import { UserCheck } from 'lucide-react';
+import DatePicker from '@/components/ui/DatePicker';
 
 export default function MeetingModal() {
   const {
@@ -19,6 +20,7 @@ export default function MeetingModal() {
   const [linkMembers, setLinkMembers] = useState(false);
   const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([]);
   const [perMemberAmount, setPerMemberAmount] = useState('5');
+  const [meetingDate, setMeetingDate] = useState(editingMeeting?.date || new Date().toISOString().split('T')[0]);
 
   return (
     <Dialog open={isMeetModalOpen} onOpenChange={setIsMeetModalOpen}>
@@ -30,12 +32,7 @@ export default function MeetingModal() {
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-semibold uppercase tracking-wider">Meeting Date</label>
-              <Input
-                type="date"
-                name="date"
-                required
-                defaultValue={editingMeeting?.date || new Date().toISOString().split('T')[0]}
-              />
+              <DatePicker name="date" value={meetingDate} onChange={setMeetingDate} required />
             </div>
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-semibold uppercase tracking-wider">Meeting Title</label>
