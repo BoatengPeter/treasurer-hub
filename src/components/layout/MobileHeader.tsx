@@ -2,7 +2,7 @@
 import { useDashboardStore } from '@/stores/dashboard-store';
 import {
   LayoutDashboard, FileSpreadsheet, Users, Building, ClipboardCheck,
-  FileText, Settings, Sun, Moon, LogOut
+  FileText, Settings, Sun, Moon, LogOut, UserCheck
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import * as db from '@/lib/db';
@@ -36,6 +36,9 @@ export default function MobileHeader() {
           </button>
           <button onClick={() => setActiveTab('meetings')} className="flex items-center gap-3 px-4 py-3 rounded text-sm text-left">
             <Users className="h-4 w-4" /> Meetings
+          </button>
+          <button onClick={() => setActiveTab('members')} className="flex items-center gap-3 px-4 py-3 rounded text-sm text-left">
+            <UserCheck className="h-4 w-4" /> Members
           </button>
           <button onClick={() => setActiveTab('lodgments')} className="flex items-center gap-3 px-4 py-3 rounded text-sm text-left">
             <Building className="h-4 w-4" /> Lodgments

@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 import { useDashboardStore } from '@/stores/dashboard-store';
 import { Printer } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import HelpButton from '@/components/ui/HelpButton';
 import { Card, CardContent } from '@/components/ui/card';
 import ReportsPrintArea from './ReportsPrintArea';
 
@@ -29,7 +30,20 @@ export default function ReportsTab() {
       <header className="no-print flex justify-between items-center gap-4 flex-wrap">
         <div>
           <h2 className="text-3xl font-heading font-bold text-slate-900 dark:text-slate-100">Financial Reports</h2>
-          <p className="text-xs text-muted-foreground">Generate quarterly Receipts & Payments or Income & Expenditure summaries</p>
+          <div className="flex items-center gap-1.5 mt-0.5">
+            <p className="text-xs text-muted-foreground">Generate quarterly Receipts & Payments or Income & Expenditure summaries</p>
+            <HelpButton title="Financial Reports">
+              <p>Generate formal financial reports for a selected quarter. Two report formats are available.</p>
+              <p><strong>What you can do here:</strong></p>
+              <ul className="list-disc pl-4 space-y-1">
+                <li>Select a quarter and year to report on</li>
+                <li>Choose <strong>Receipts &amp; Payments</strong> — a simple cash-based summary</li>
+                <li>Choose <strong>Income &amp; Expenditure</strong> — categorised by income/expense type</li>
+                <li>Preview the formatted report on screen</li>
+                <li>Print directly or save as PDF from the browser</li>
+              </ul>
+            </HelpButton>
+          </div>
         </div>
         <Button onClick={() => window.print()} className="flex items-center gap-1.5"><Printer className="h-4 w-4" /> Print Statement</Button>
       </header>

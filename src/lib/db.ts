@@ -1,5 +1,13 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
+export interface Member {
+  id: string;
+  name: string;
+  phone?: string;
+  status: 'active' | 'inactive';
+  created_at?: string;
+}
+
 export interface Transaction {
   id: string;
   date: string;
@@ -8,9 +16,10 @@ export interface Transaction {
   amount: number;
   payment_method: 'Cash' | 'Cheque' | 'Mobile Money' | 'Bank Transfer';
   reference?: string;
-  description: string;
+  description?: string;
   meeting_id?: string;
   lodgment_id?: string;
+  member_id?: string;
   receipt_image?: string;
   created_at?: string;
 }
@@ -39,6 +48,16 @@ export interface Lodgment {
   notes?: string;
   status: 'Pending' | 'Lodged' | 'Reconciled';
   receipt_image?: string;
+  created_at?: string;
+}
+
+export interface AuditLog {
+  id: string;
+  user_id: string;
+  action: string;
+  entity_type: string;
+  entity_id?: string;
+  details?: Record<string, unknown>;
   created_at?: string;
 }
 
@@ -123,8 +142,9 @@ export const saveTransaction = async (transaction: Partial<Transaction> & { id?:
     payment_method: transaction.payment_method || 'Cash',
     reference: transaction.reference || '',
     description: transaction.description || '',
-    meeting_id: transaction.meeting_id || '',
-    lodgment_id: transaction.lodgment_id || '',
+    meeting_id: transaction.meeting_id || undefined,
+    lodgment_id: transaction.lodgment_id || undefined,
+    member_id: transaction.member_id || undefined,
     receipt_image: transaction.receipt_image || '',
     created_at: transaction.created_at || new Date().toISOString()
   };
@@ -277,4 +297,55 @@ export const deleteStatement = async (id: string): Promise<boolean> => {
     .eq('id', id);
   if (error) throw error;
   return true;
+};
+
+// --- MEMBERS ---
+export const getMembers = async (): Promise<Member[]> => {
+  if (!supabase) return [];
+  const { data, error } = await supabase
+    .from('members')
+    .select('*')
+    .order('name', { ascending: true });
+  if (error) throw error;
+  return data as Member[];
+};
+
+export const saveMember = async (member: Partial<Member> & { id?: string }): Promise<Member | null> => {
+  if (!supabase) return null;
+  const fullMember: Member = {
+    id: member.id || crypto.randomUUID(),
+    name: member.name || '',
+    phone: member.phone || '',
+    status: member.status || 'active',
+    created_at: member.created_at || new Date().toISOString()
+  };
+
+  const { data, error } = await supabase
+    .from('members')
+    .upsert(fullMember)
+    .select();
+  if (error) throw error;
+  return (data && data[0]) ? data[0] as Member : fullMember;
+};
+
+export const deleteMember = async (id: string): Promise<boolean> => {
+  if (!supabase) return false;
+  const { error } = await supabase
+    .from('members')
+    .delete()
+    .eq('id', id);
+  if (error) throw error;
+  return true;
+};
+
+// --- AUDIT LOG ---
+export const logAudit = async (userId: string, action: string, entityType: string, entityId?: string, details?: Record<string, unknown>): Promise<void> => {
+  if (!supabase || !userId) return;
+  await supabase.from('audit_log').insert({
+    user_id: userId,
+    action,
+    entity_type: entityType,
+    entity_id: entityId,
+    details: details || null,
+  });
 };

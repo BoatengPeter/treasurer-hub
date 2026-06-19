@@ -18,6 +18,7 @@ import LodgmentsTab from '@/components/lodgments/LodgmentsTab';
 import ReconciliationTab from '@/components/reconciliation/ReconciliationTab';
 import ReportsTab from '@/components/reports/ReportsTab';
 import SettingsTab from '@/components/settings/SettingsTab';
+import MembersTab from '@/components/members/MembersTab';
 
 // Modals
 import TransactionModal from '@/components/modals/TransactionModal';
@@ -25,6 +26,7 @@ import MeetingModal from '@/components/modals/MeetingModal';
 import LodgmentModal from '@/components/modals/LodgmentModal';
 import StatementModal from '@/components/modals/StatementModal';
 import ReceiptPreview from '@/components/modals/ReceiptPreview';
+import ConfirmDeleteDialog from '@/components/modals/ConfirmDeleteDialog';
 
 import AuthScreen from '@/components/AuthScreen';
 
@@ -100,6 +102,7 @@ export default function Home() {
             {activeTab === 'dashboard' && <DashboardTab />}
             {activeTab === 'ledger' && <LedgerTab />}
             {activeTab === 'meetings' && <MeetingsTab />}
+            {activeTab === 'members' && <MembersTab />}
             {activeTab === 'lodgments' && <LodgmentsTab />}
             {activeTab === 'reconciliation' && <ReconciliationTab />}
             {activeTab === 'reports' && <ReportsTab />}
@@ -111,6 +114,7 @@ export default function Home() {
       <MeetingModal />
       <LodgmentModal />
       <StatementModal />
+      <ConfirmDeleteDialog />
       <ReceiptPreview />
     </div>
   );

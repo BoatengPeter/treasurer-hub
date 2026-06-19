@@ -2,20 +2,34 @@
 import { useDashboardStore } from '@/stores/dashboard-store';
 import { Plus, Edit, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import HelpButton from '@/components/ui/HelpButton';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { formatCurrency, formatDate } from '@/lib/format-utils';
 import VarianceChecker from './VarianceChecker';
 
 export default function ReconciliationTab() {
-  const { statements, lodgments, setEditingStatement, setIsStmtModalOpen, handleDeleteStatement } = useDashboardStore();
+  const { statements, lodgments, setEditingStatement, setIsStmtModalOpen, setConfirmDelete } = useDashboardStore();
 
   return (
     <div className="flex flex-col gap-8">
       <header className="flex justify-between items-center gap-4 flex-wrap">
         <div>
           <h2 className="text-3xl font-heading font-bold text-slate-900 dark:text-slate-100">Account Reconciliation</h2>
-          <p className="text-xs text-muted-foreground">Compare official statements called from the church treasurer</p>
+          <div className="flex items-center gap-1.5 mt-0.5">
+            <p className="text-xs text-muted-foreground">Compare official statements called from the church treasurer</p>
+            <HelpButton title="Account Reconciliation">
+              <p>Reconciliation matches your youth group records against the official church statement. This ensures every cedis collected is accounted for and properly lodged.</p>
+              <p><strong>What you can do here:</strong></p>
+              <ul className="list-disc pl-4 space-y-1">
+                <li>Log official church statements for any period</li>
+                <li>View variance between your records and the church statement</li>
+                <li>Identify discrepancies — missing lodgments or unrecorded deposits</li>
+                <li>Track opening and closing balances for each period</li>
+                <li>Edit or delete statement records</li>
+              </ul>
+            </HelpButton>
+          </div>
         </div>
         <Button onClick={() => { setEditingStatement(null); setIsStmtModalOpen(true); }} className="flex items-center gap-1.5">
           <Plus className="h-4 w-4" /> Log Church Statement
@@ -48,7 +62,7 @@ export default function ReconciliationTab() {
                       <TableCell className="no-print text-right">
                         <div className="flex justify-end gap-1.5">
                           <Button variant="ghost" size="sm" onClick={() => { setEditingStatement(s); setIsStmtModalOpen(true); }} className="h-7 w-7 p-0"><Edit className="h-3 w-3" /></Button>
-                          <Button variant="ghost" size="sm" onClick={() => handleDeleteStatement(s.id)} className="h-7 w-7 p-0 text-rose-500 hover:text-rose-600"><Trash2 className="h-3 w-3" /></Button>
+                          <Button variant="ghost" size="sm" onClick={() => setConfirmDelete({ id: s.id, entity: 'statement' })} className="h-7 w-7 p-0 text-rose-500 hover:text-rose-600"><Trash2 className="h-3 w-3" /></Button>
                         </div>
                       </TableCell>
                     </TableRow>

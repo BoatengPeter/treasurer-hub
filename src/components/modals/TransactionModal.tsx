@@ -6,7 +6,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { ImageIcon } from 'lucide-react';
+import { ImageIcon, UserCheck } from 'lucide-react';
+
+const FormErr = ({ errors, field }: { errors: Record<string, string[]>; field: string }) => {
+  const msgs = errors[field];
+  if (!msgs?.length) return null;
+  return <p className="text-xs text-rose-500 mt-0.5">{msgs[0]}</p>;
+};
 
 export default function TransactionModal() {
   const {
@@ -15,10 +21,17 @@ export default function TransactionModal() {
     txReceiptImage, setTxReceiptImage,
     uploadingTxImage, setUploadingTxImage,
     handleSaveTransaction, uploadReceiptImage,
+    members,
+    txFormErrors, setTxFormErrors,
   } = useDashboardStore();
 
+  const handleOpenChange = (open: boolean) => {
+    setIsTxModalOpen(open);
+    if (!open) setTxFormErrors({});
+  };
+
   return (
-    <Dialog open={isTxModalOpen} onOpenChange={setIsTxModalOpen}>
+    <Dialog open={isTxModalOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-[550px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{editingTx ? 'Modify Transaction Record' : 'Record Ledger Transaction'}</DialogTitle>
@@ -33,6 +46,7 @@ export default function TransactionModal() {
                 required
                 defaultValue={editingTx?.date || new Date().toISOString().split('T')[0]}
               />
+              <FormErr errors={txFormErrors} field="date" />
             </div>
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-semibold uppercase tracking-wider">Type</label>
@@ -45,6 +59,7 @@ export default function TransactionModal() {
                 <option value="income">Income (Inflow)</option>
                 <option value="expense">Expense (Outflow)</option>
               </select>
+              <FormErr errors={txFormErrors} field="type" />
             </div>
           </div>
 
@@ -78,6 +93,7 @@ export default function TransactionModal() {
                 placeholder="0.00"
                 defaultValue={editingTx?.amount || ''}
               />
+              <FormErr errors={txFormErrors} field="amount" />
             </div>
           </div>
 
@@ -108,13 +124,29 @@ export default function TransactionModal() {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold uppercase tracking-wider">Description</label>
+            <label className="text-xs font-semibold uppercase tracking-wider">Description (optional)</label>
             <Textarea
               name="description"
-              required
               placeholder="Log context notes for this transaction..."
               defaultValue={editingTx?.description || ''}
             />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5">
+              <UserCheck className="h-4 w-4 text-emerald-600" />
+              Member (optional)
+            </label>
+            <select
+              name="member_id"
+              defaultValue={editingTx?.member_id || ''}
+              className="h-9 rounded-md border border-input bg-card px-3 text-sm focus-visible:outline-none focus-visible:ring-1"
+            >
+              <option value="">— Not linked to a member —</option>
+              {members.map(m => (
+                <option key={m.id} value={m.id}>{m.name}</option>
+              ))}
+            </select>
           </div>
 
           <div className="flex flex-col gap-1.5 border-t border-border pt-4 mt-2">
@@ -160,7 +192,7 @@ export default function TransactionModal() {
           <input type="hidden" name="lodgment_id" defaultValue={editingTx?.lodgment_id || ''} />
 
           <DialogFooter className="mt-4">
-            <Button type="button" variant="outline" onClick={() => setIsTxModalOpen(false)}>
+            <Button type="button" variant="outline" onClick={() => handleOpenChange(false)}>
               Cancel
             </Button>
             <Button type="submit">Save Record</Button>

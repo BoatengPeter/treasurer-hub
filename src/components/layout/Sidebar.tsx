@@ -2,7 +2,7 @@
 import { useDashboardStore } from '@/stores/dashboard-store';
 import {
   LayoutDashboard, FileSpreadsheet, Users, Building, ClipboardCheck,
-  FileText, Settings, Sun, Moon, LogOut
+  FileText, Settings, Sun, Moon, LogOut, UserCheck
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import * as db from '@/lib/db';
@@ -11,6 +11,7 @@ const navItems = [
   { tab: 'dashboard', label: 'Financial Position', icon: LayoutDashboard },
   { tab: 'ledger', label: 'Transactions Ledger', icon: FileSpreadsheet },
   { tab: 'meetings', label: 'Meeting Sign-offs', icon: Users },
+  { tab: 'members', label: 'Member Roster', icon: UserCheck },
   { tab: 'lodgments', label: 'Church Lodgments', icon: Building },
   { tab: 'reconciliation', label: 'Reconciliation', icon: ClipboardCheck },
   { tab: 'reports', label: 'Accounts Reports', icon: FileText },

@@ -12,7 +12,7 @@ interface MeetingCardProps {
 }
 
 export default function MeetingCard({ meeting }: MeetingCardProps) {
-  const { setEditingMeeting, setTempSignature, setIsMeetModalOpen, handleDeleteMeeting } = useDashboardStore();
+  const { setEditingMeeting, setTempSignature, setIsMeetModalOpen, setConfirmDelete } = useDashboardStore();
   const m = meeting;
 
   return (
@@ -28,7 +28,7 @@ export default function MeetingCard({ meeting }: MeetingCardProps) {
           <Button variant="outline" size="sm" onClick={() => { setEditingMeeting(m); setTempSignature(m.president_signature); setIsMeetModalOpen(true); }}>
             <Edit className="h-3.5 w-3.5 mr-1" /> Edit Info
           </Button>
-          <Button variant="destructive" size="sm" onClick={() => handleDeleteMeeting(m.id)}
+          <Button variant="destructive" size="sm" onClick={() => setConfirmDelete({ id: m.id, entity: 'meeting' })}
             className="bg-rose-500/10 text-rose-600 hover:bg-rose-500 hover:text-white">
             <Trash2 className="h-3.5 w-3.5" />
           </Button>

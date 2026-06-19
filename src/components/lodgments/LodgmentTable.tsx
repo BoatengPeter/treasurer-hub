@@ -7,7 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { formatCurrency } from '@/lib/format-utils';
 
 export default function LodgmentTable() {
-  const { lodgments, setEditingLodgment, setLodgReceiptImage, setIsLodgeModalOpen, handleDeleteLodgment, setPreviewImage } = useDashboardStore();
+  const { lodgments, setEditingLodgment, setLodgReceiptImage, setIsLodgeModalOpen, setConfirmDelete, setPreviewImage } = useDashboardStore();
 
   return (
     <Card>
@@ -51,7 +51,7 @@ export default function LodgmentTable() {
                 <TableCell className="no-print text-right">
                   <div className="flex justify-end gap-1.5">
                     <Button variant="ghost" size="sm" onClick={() => { setEditingLodgment(l); setLodgReceiptImage(l.receipt_image || ''); setIsLodgeModalOpen(true); }} className="h-7 w-7 p-0"><Edit className="h-3 w-3" /></Button>
-                    <Button variant="ghost" size="sm" onClick={() => handleDeleteLodgment(l.id)} className="h-7 w-7 p-0 text-rose-500 hover:text-rose-600"><Trash2 className="h-3 w-3" /></Button>
+                    <Button variant="ghost" size="sm" onClick={() => setConfirmDelete({ id: l.id, entity: 'lodgment' })} className="h-7 w-7 p-0 text-rose-500 hover:text-rose-600"><Trash2 className="h-3 w-3" /></Button>
                   </div>
                 </TableCell>
               </TableRow>

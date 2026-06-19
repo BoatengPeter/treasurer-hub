@@ -12,7 +12,7 @@ interface AuthScreenProps {
 }
 
 export default function AuthScreen({ onSuccess }: AuthScreenProps) {
-  const [mode, setMode] = useState<'signin' | 'signup' | 'forgot' | 'update'>('signin');
+  const [mode, setMode] = useState<'signin' | 'forgot' | 'update'>('signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -43,16 +43,6 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
         const { error } = await client.auth.signInWithPassword({ email, password });
         if (error) throw error;
         onSuccess();
-      } else if (mode === 'signup') {
-        const { error } = await client.auth.signUp({ 
-          email, 
-          password,
-          options: {
-            emailRedirectTo: typeof window !== 'undefined' ? window.location.origin : undefined
-          }
-        });
-        if (error) throw error;
-        setMessage('Check your email inbox to confirm registration and verify your account!');
       } else if (mode === 'forgot') {
         const { error } = await client.auth.resetPasswordForEmail(email, {
           redirectTo: `${typeof window !== 'undefined' ? window.location.origin : ''}`,
@@ -77,7 +67,7 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 p-4 relative overflow-hidden">
-      
+
       <div className="absolute top-[-20%] left-[-20%] w-[60%] h-[60%] rounded-full bg-emerald-500/5 blur-3xl" />
       <div className="absolute bottom-[-20%] right-[-20%] w-[60%] h-[60%] rounded-full bg-amber-500/5 blur-3xl" />
 
@@ -90,13 +80,11 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
           </div>
           <CardTitle className="font-heading text-2xl font-bold bg-gradient-to-r from-emerald-600 to-amber-500 bg-clip-text text-transparent">
             {mode === 'signin' && 'Welcome Back'}
-            {mode === 'signup' && 'Register Treasurer'}
             {mode === 'forgot' && 'Reset Password'}
             {mode === 'update' && 'Update Password'}
           </CardTitle>
           <CardDescription>
-            {mode === 'signin' && 'Log in to securely sync your church youth ledger.'}
-            {mode === 'signup' && 'Create a treasurer account for secure cloud syncing.'}
+            {mode === 'signin' && 'Authorised leaders only. Log in to access the treasurer hub.'}
             {mode === 'forgot' && 'Enter your email to request a reset link.'}
             {mode === 'update' && 'Enter your new password below.'}
           </CardDescription>
@@ -104,16 +92,16 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
 
         <CardContent>
           <form onSubmit={handleAuth} className="flex flex-col gap-4">
-            
+
             {error && (
               <div className="p-3 text-xs bg-rose-500/10 border border-rose-500/20 text-rose-500 rounded-lg">
-                ⚠️ {error}
+                {error}
               </div>
             )}
 
             {message && (
               <div className="p-3 text-xs bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 rounded-lg">
-                ℹ️ {message}
+                {message}
               </div>
             )}
 
@@ -122,9 +110,9 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
                 <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Email Address</label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input 
-                    type="email" 
-                    placeholder="treasurer@church.org" 
+                  <Input
+                    type="email"
+                    placeholder="treasurer@church.org"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
@@ -134,25 +122,23 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
               </div>
             )}
 
-            {(mode === 'signin' || mode === 'signup' || mode === 'update') && (
+            {mode === 'signin' && (
               <div className="flex flex-col gap-1.5">
                 <div className="flex justify-between items-center">
                   <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Password</label>
-                  {mode === 'signin' && (
-                    <button 
-                      type="button" 
-                      onClick={() => { setError(''); setMessage(''); setMode('forgot'); }}
-                      className="text-xs text-emerald-600 dark:text-emerald-400 hover:underline cursor-pointer"
-                    >
-                      Forgot?
-                    </button>
-                  )}
+                  <button
+                    type="button"
+                    onClick={() => { setError(''); setMessage(''); setMode('forgot'); }}
+                    className="text-xs text-emerald-600 dark:text-emerald-400 hover:underline cursor-pointer"
+                  >
+                    Forgot?
+                  </button>
                 </div>
                 <div className="relative">
                   <Lock className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input 
-                    type="password" 
-                    placeholder="••••••••" 
+                  <Input
+                    type="password"
+                    placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
@@ -162,28 +148,43 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
               </div>
             )}
 
-            {(mode === 'signup' || mode === 'update') && (
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Confirm Password</label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input 
-                    type="password" 
-                    placeholder="••••••••" 
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    required
-                    className="pl-9"
-                  />
+            {mode === 'update' && (
+              <>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">New Password</label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      type="password"
+                      placeholder="••••••••"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      className="pl-9"
+                    />
+                  </div>
                 </div>
-              </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Confirm New Password</label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      type="password"
+                      placeholder="••••••••"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      required
+                      className="pl-9"
+                    />
+                  </div>
+                </div>
+              </>
             )}
 
             <Button type="submit" disabled={loading} className="w-full flex items-center justify-center gap-2 mt-2">
               {loading ? 'Processing...' : (
                 <>
                   {mode === 'signin' && 'Log In'}
-                  {mode === 'signup' && 'Register Account'}
                   {mode === 'forgot' && 'Send Reset Link'}
                   {mode === 'update' && 'Update Password'}
                   <ArrowRight className="h-4 w-4" />
@@ -194,35 +195,9 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
         </CardContent>
 
         <CardFooter className="flex flex-col gap-4 border-t border-border pt-4 text-center text-xs text-muted-foreground">
-          {mode === 'signin' && (
-            <p>
-              New treasurer account?{' '}
-              <button 
-                type="button" 
-                onClick={() => { setError(''); setMessage(''); setMode('signup'); }}
-                className="text-emerald-600 dark:text-emerald-400 hover:underline font-semibold cursor-pointer"
-              >
-                Register here
-              </button>
-            </p>
-          )}
-
-          {mode === 'signup' && (
-            <p>
-              Already have an account?{' '}
-              <button 
-                type="button" 
-                onClick={() => { setError(''); setMessage(''); setMode('signin'); }}
-                className="text-emerald-600 dark:text-emerald-400 hover:underline font-semibold cursor-pointer"
-              >
-                Log in
-              </button>
-            </p>
-          )}
-
           {(mode === 'forgot' || mode === 'update') && (
-            <button 
-              type="button" 
+            <button
+              type="button"
               onClick={() => { setError(''); setMessage(''); setMode('signin'); }}
               className="text-emerald-600 dark:text-emerald-400 hover:underline font-semibold cursor-pointer flex items-center gap-1"
             >

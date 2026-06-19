@@ -12,7 +12,12 @@ interface TransactionTableProps {
 }
 
 export default function TransactionTable({ filteredTransactions }: TransactionTableProps) {
-  const { setEditingTx, setTxReceiptImage, setIsTxModalOpen, handleDeleteTx, setPreviewImage } = useDashboardStore();
+  const { members, setEditingTx, setTxReceiptImage, setIsTxModalOpen, setConfirmDelete, setPreviewImage } = useDashboardStore();
+
+  const getMemberName = (id?: string) => {
+    if (!id) return null;
+    return members.find(m => m.id === id)?.name || null;
+  };
 
   return (
     <Card>
@@ -23,6 +28,7 @@ export default function TransactionTable({ filteredTransactions }: TransactionTa
               <TableHead>Date</TableHead>
               <TableHead>Type</TableHead>
               <TableHead>Category</TableHead>
+              <TableHead>Member</TableHead>
               <TableHead>Reference</TableHead>
               <TableHead>Description</TableHead>
               <TableHead>Amount</TableHead>
@@ -42,6 +48,7 @@ export default function TransactionTable({ filteredTransactions }: TransactionTa
                   </span>
                 </TableCell>
                 <TableCell className="font-semibold">{t.category}</TableCell>
+                <TableCell className="text-xs">{getMemberName(t.member_id) || <span className="text-muted-foreground">-</span>}</TableCell>
                 <TableCell className="font-mono text-xs text-muted-foreground">{t.reference || '-'}</TableCell>
                 <TableCell className="max-w-[200px] truncate" title={t.description}>{t.description}</TableCell>
                 <TableCell className={`font-bold ${t.type === 'income' ? 'text-emerald-600' : 'text-rose-500'}`}>
@@ -73,7 +80,7 @@ export default function TransactionTable({ filteredTransactions }: TransactionTa
                   <div className="flex justify-end gap-1.5">
                     <Button variant="ghost" size="sm" onClick={() => { setEditingTx(t); setTxReceiptImage(t.receipt_image || ''); setIsTxModalOpen(true); }}
                       className="h-7 w-7 p-0"><Edit className="h-3 w-3" /></Button>
-                    <Button variant="ghost" size="sm" onClick={() => handleDeleteTx(t.id)}
+                    <Button variant="ghost" size="sm" onClick={() => setConfirmDelete({ id: t.id, entity: 'transaction' })}
                       className="h-7 w-7 p-0 text-rose-500 hover:text-rose-600"><Trash2 className="h-3 w-3" /></Button>
                   </div>
                 </TableCell>
@@ -81,7 +88,7 @@ export default function TransactionTable({ filteredTransactions }: TransactionTa
             ))}
             {filteredTransactions.length === 0 && (
               <TableRow>
-                <TableCell colSpan={10} className="text-center py-10 text-muted-foreground text-sm">No transactions match your search filter.</TableCell>
+                <TableCell colSpan={11} className="text-center py-10 text-muted-foreground text-sm">No transactions match your search filter.</TableCell>
               </TableRow>
             )}
           </TableBody>
