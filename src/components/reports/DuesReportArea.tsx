@@ -93,31 +93,19 @@ export default function DuesReportArea({ transactions, members, referenceDate, p
         <div className="mb-8">
           <h3 className="text-sm font-bold uppercase border-b border-slate-900 dark:border-slate-100 pb-2 mb-4">Member Contributions</h3>
           <div className="text-xs">
-            <div className="grid grid-cols-[1fr_auto_auto] gap-2 font-bold text-muted-foreground uppercase tracking-wider pb-2 border-b border-border mb-2">
+            <div className="grid grid-cols-[1fr_auto] gap-2 font-bold text-muted-foreground uppercase tracking-wider pb-2 border-b border-border mb-2">
               <span>Member</span>
               <span className="text-right">Amount</span>
-              <span className="text-right w-20">Method</span>
             </div>
-            {report.memberBreakdown.map(({ member, transactions: txs, totalPaid }) => (
-              <div key={member.id}>
-                {txs.map((tx, i) => (
-                  <div key={tx.id} className="grid grid-cols-[1fr_auto_auto] gap-2 py-1.5 border-b border-border/50">
-                    <span>{i === 0 ? member.name : ''}</span>
-                    <span className="text-right font-mono">{formatCurrency(tx.amount)}</span>
-                    <span className="text-right w-20 text-muted-foreground">{tx.payment_method}</span>
-                  </div>
-                ))}
-                <div className="grid grid-cols-[1fr_auto_auto] gap-2 py-1.5 font-bold text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-slate-900/30">
-                  <span className="pl-2">{member.name} Total</span>
-                  <span className="text-right font-mono">{formatCurrency(totalPaid)}</span>
-                  <span className="text-right w-20"></span>
-                </div>
+            {report.memberBreakdown.map(({ member, totalPaid }) => (
+              <div key={member.id} className="grid grid-cols-[1fr_auto] gap-2 py-1.5 border-b border-border/50">
+                <span>{member.name}</span>
+                <span className="text-right font-mono">{formatCurrency(totalPaid)}</span>
               </div>
             ))}
-            <div className="grid grid-cols-[1fr_auto_auto] gap-2 py-2 mt-2 border-t-2 border-slate-800 text-sm font-bold">
+            <div className="grid grid-cols-[1fr_auto] gap-2 py-2 mt-2 border-t-2 border-slate-800 text-sm font-bold">
               <span>Grand Total</span>
               <span className="text-right text-emerald-600">{formatCurrency(report.total)}</span>
-              <span className="text-right w-20"></span>
             </div>
           </div>
         </div>

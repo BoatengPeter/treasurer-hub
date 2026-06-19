@@ -176,9 +176,8 @@ export function generateDuesReportPdf(
     doc.text('Member Contributions', 20, y);
     y += 5;
     const rows: string[][] = [];
-    for (const { member: m, transactions: txs, totalPaid } of breakdown) {
-      txs.forEach(tx => rows.push([m.name, formatCurrency(tx.amount), tx.payment_method]));
-      rows.push([`${m.name} Total`, formatCurrency(totalPaid), '']);
+    for (const { member: m, totalPaid } of breakdown) {
+      rows.push([m.name, formatCurrency(totalPaid), '']);
     }
     drawTable(doc, [['Member', 'Amount', 'Method']], rows, [['Grand Total', formatCurrency(total), '']], y, 20, { '0': { cellWidth: 100 }, '1': { cellWidth: 40, halign: 'right' }, '2': { cellWidth: 30, halign: 'right' } });
   }
