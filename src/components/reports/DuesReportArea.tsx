@@ -57,7 +57,6 @@ export default function DuesReportArea({ transactions, members, referenceDate, p
 
     const total = dues.reduce((s, t) => s + Number(t.amount), 0);
     const contributorIds = new Set(dues.filter(t => t.member_id).map(t => t.member_id!));
-    const paidMemberIds = new Set(dues.filter(t => t.member_id).map(t => t.member_id!));
     const activeMembers = members.filter(m => m.status === 'active');
 
     const memberBreakdown = activeMembers.map(m => {
@@ -66,9 +65,7 @@ export default function DuesReportArea({ transactions, members, referenceDate, p
       return { member: m, transactions: mTxs, totalPaid };
     }).filter(m => m.totalPaid > 0).sort((a, b) => b.totalPaid - a.totalPaid);
 
-    const nonContributors = activeMembers.filter(m => !paidMemberIds.has(m.id));
-
-    return { start, end, total, contributorCount: contributorIds.size, memberBreakdown, nonContributors };
+    return { start, end, total, contributorCount: contributorIds.size, memberBreakdown };
   }, [transactions, members, referenceDate, period]);
 
   return (
@@ -126,13 +123,6 @@ export default function DuesReportArea({ transactions, members, referenceDate, p
         </div>
       ) : (
         <p className="text-center text-muted-foreground italic py-8">No dues were collected in this period.</p>
-      )}
-
-      {report.nonContributors.length > 0 && (
-        <div className="p-4 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900">
-          <h4 className="text-xs font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400 mb-2">Members who did not contribute</h4>
-          <p className="text-xs text-muted-foreground">{report.nonContributors.map(m => m.name).join(', ')}</p>
-        </div>
       )}
 
       <div className="mt-16 grid grid-cols-2 gap-10 print-only">

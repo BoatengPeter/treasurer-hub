@@ -161,7 +161,6 @@ export function generateDuesReportPdf(
     member: m, transactions: dues.filter(t => t.member_id === m.id),
     totalPaid: dues.filter(t => t.member_id === m.id).reduce((s, t) => s + Number(t.amount), 0),
   })).filter(m => m.totalPaid > 0).sort((a, b) => b.totalPaid - a.totalPaid);
-  const nonContributors = active.filter(m => !paidIds.has(m.id));
 
   addDuesHeader(doc);
   doc.setFontSize(9);
@@ -182,15 +181,6 @@ export function generateDuesReportPdf(
       rows.push([`${m.name} Total`, formatCurrency(totalPaid), '']);
     }
     drawTable(doc, [['Member', 'Amount', 'Method']], rows, [['Grand Total', formatCurrency(total), '']], y, 20, { '0': { cellWidth: 100 }, '1': { cellWidth: 40, halign: 'right' }, '2': { cellWidth: 30, halign: 'right' } });
-    y += 10 + (rows.length + 2) * 7;
-    if (nonContributors.length > 0) {
-      if (y > doc.internal.pageSize.getHeight() - 40) { doc.addPage(); y = 30; }
-      doc.setFontSize(9);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Members who did not contribute:', 20, y);
-      doc.setFont('helvetica', 'normal');
-      doc.text(nonContributors.map(m => m.name).join(', '), 20, y + 6);
-    }
   }
   addFooter(doc);
   const l = periodLabel(bounds.start, bounds.end, period).replace(/[/,]\s*/g, '-').replace(/\s+/g, '-').toLowerCase();
